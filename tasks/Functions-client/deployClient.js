@@ -17,8 +17,8 @@ task("functions-deploy-client", "Deploys the FunctionsConsumer contract")
     console.log("\n__Compiling Contracts__")
     await run("compile")
 
-    const clientContractFactory = await ethers.getContractFactory("FunctionsConsumer")
-    const clientContract = await clientContractFactory.deploy(oracleAddress)
+    const clientContractFactory = await ethers.getContractFactory("TempContract")
+    const clientContract = await clientContractFactory.deploy(oracleAddress,"")
 
     console.log(
       `\nWaiting ${networks[network.name].confirmations} blocks for transaction ${
@@ -35,7 +35,7 @@ task("functions-deploy-client", "Deploys the FunctionsConsumer contract")
         await clientContract.deployTransaction.wait(Math.max(6 - networks[network.name].confirmations, 0))
         await run("verify:verify", {
           address: clientContract.address,
-          constructorArguments: [oracleAddress],
+          constructorArguments: [oracleAddress, ""],
         })
         console.log("Contract verified")
       } catch (error) {

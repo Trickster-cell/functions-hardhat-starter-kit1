@@ -6,11 +6,11 @@
 // const coinGeckoCoinId = args[1]
 // const coinPaprikaCoinId = args[2]
 
-const city = args[0]
+const sessionId = args[0]
 
 if (
   secrets.apiKey == "" ||
-  secrets.apiKey === "Your Weather API key (get a free one: https://coinmarketcap.com/api/)"
+  secrets.apiKey === "Your decision API key (get a free one: https://coinmarketcap.com/api/)"
 ) {
   throw Error(
     "COINMARKETCAP_API_KEY environment variable not set for CoinMarketCap API.  Get a free key from https://coinmarketcap.com/api/"
@@ -19,50 +19,70 @@ if (
 
 // build HTTP request objects
 
-const weatherApiCall = Functions.makeHttpRequest({
-  url: `http://api.weatherapi.com/v1/current.json`,
-  params: {
-    q: city,
-    key: secrets.apiKey,
-    aqi: "no",
+const decisionApiCall = Functions.makeHttpRequest({
+  url: `https://stationapi.veriff.com/v1/sessions/${sessionId}/decision`,
+  headers: {
+    "Content-Type": "application/json",
+    "X-AUTH-CLIENT": "f084cf46-a954-4da1-b908-db35d5e52bf7",
+    "X-HMAC-SIGNATURE": "1cd03710ec74b4657fd8734a19b96277e00aa20b034a9abed16fbe87b0bcbed1"
   },
 })
 
-const weatherAPIresponse = await weatherApiCall
-if (weatherAPIresponse.error) {
-  console.log(weatherAPIresponse.error)
+const decisionAPIresponse = await decisionApiCall
+if (decisionAPIresponse.error) {
+  console.log(decisionAPIresponse.error)
   throw Error("Request Failed")
 }
 
-const data = weatherAPIresponse["data"]
+const data = decisionAPIresponse["data"]
 if (data.Response === "Error") {
   console.error(data.Message)
   throw Error(`Functional error. Read message: ${data.Message}`)
 }
 
-const temp_c = data["current"]["temp_c"]
-const temp_f = data["current"]["temp_f"]
+const statusCode = data["verification"]["code"]
+// const temp_f = data["current"]["temp_f"]
 // return Functions.encodeUint256(Math.round(temp_c*100))
 
-console.log(`Current Temperature in ${city} is ${temp_c} | ${temp_f}`)
+console.log(statusCode);
+
+if(statusCode!="9001")
+{
+  const err = {res: "NOT VERIFIED"};
+  return Functions.encodeString(JSON.stringify(err))
+
+}
+
+const dataApiCall = Functions.makeHttpRequest({
+  url: `https://stationapi.veriff.com/v1/sessions/${sessionId}/person`,
+  headers: {
+    "Content-Type": "application/json",
+    "X-AUTH-CLIENT": "f084cf46-a954-4da1-b908-db35d5e52bf7",
+    "X-HMAC-SIGNATURE": "1cd03710ec74b4657fd8734a19b96277e00aa20b034a9abed16fbe87b0bcbed1"
+  },
+})
+
+const dataAPIresponse = await dataApiCall
+if (dataAPIresponse.error) {
+  console.log(dataAPIresponse.error)
+  throw Error("Request Failed")
+}
+
+const data1 = dataAPIresponse["data"]
+if (data1.Response === "Error") {
+  console.error(data1.Message)
+  throw Error(`Functional error. Read message: ${data1.Message}`)
+}
+
+const first_name = data1["person"]["firstName"]
+const last_name = data1["person"]["lastName"]
+const DOB = data1["person"]["dateOfBirth"]
 
 const result = {
-    temp_c: temp_c.toFixed(2),
-    temp_f: temp_f.toFixed(2),
+  FirstName : first_name,
+  LastName : last_name,
+  DOB : DOB
 }
 
-
-if((temp_c)>35)
-{
-    const tempContractAddress = "0xDb3FF6B2d345a6B90E09694c538D91Ac9d975cd0"
-    
-    let tempContract = await ethers.getContractAt("temp", tempContractAddress)
-    
-    await tempContract.addTwo(12, 35)
-
-    const ans = await tempContract.retrieve()
-
-    console.log(ans)
-}
 
 return Functions.encodeString(JSON.stringify(result))

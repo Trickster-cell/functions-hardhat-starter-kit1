@@ -13,8 +13,7 @@ import {ConfirmedOwner} from "@chainlink/contracts/src/v0.8/ConfirmedOwner.sol";
  * @notice NOT FOR PRODUCTION USE
  */
 
-contract TempContract is FunctionsClient, ConfirmedOwner, ERC20 
-{
+contract TempContract is FunctionsClient, ConfirmedOwner, ERC20 {
   using Functions for Functions.Request;
   string private sourceCode;
 
@@ -22,20 +21,22 @@ contract TempContract is FunctionsClient, ConfirmedOwner, ERC20
   bytes public latestResponse;
   bytes public latestError;
 
-    event OCRResponse(bytes32 indexed requestId, bytes result, bytes err);
+  event OCRResponse(bytes32 indexed requestId, bytes result, bytes err);
+  event TransferredCoins(address indexed recieverAddress, uint256 tokenAmount);
+  uint256 public ans;
+  uint256 public tokenAmount = 5 * 10**uint256(decimals());
 
-    uint256 public ans;
-
-    constructor(address oracle, string memory _sourceCode) FunctionsClient(oracle) ConfirmedOwner(msg.sender) ERC20("Yash Tokens", "YRJ")
-    {
-        sourceCode = _sourceCode;
-    }
-  
+  constructor(
+    address oracle,
+    string memory _sourceCode
+  ) FunctionsClient(oracle) ConfirmedOwner(msg.sender) ERC20("Yash Tokens", "YRJ") {
+    sourceCode = _sourceCode;
+  }
 
   function executeRequest(
-    string calldata source,
-    bytes calldata secrets,
-    string[] calldata args,
+    string memory source,
+    bytes memory secrets,
+    string[] memory args,
     uint64 subscriptionId,
     uint32 gasLimit
   ) public onlyOwner returns (bytes32) {
@@ -51,33 +52,34 @@ contract TempContract is FunctionsClient, ConfirmedOwner, ERC20
     return assignedReqID;
   }
 
-  function fulfillRequest(
-    bytes32 requestId, 
-    bytes memory response, 
-    bytes memory err
-  ) internal override {
+  function fulfillRequest(bytes32 requestId, bytes memory response, bytes memory err) internal override {
     latestResponse = response;
     latestError = err;
-    if(response.length>0)
-    {
+    if (response.length > 0) {
       uint256 temp = abi.decode(response, (uint256));
       ans = temp;
       emit OCRResponse(requestId, response, err);
     }
   }
 
+  function transferToken(string[] calldata args,
+    bytes calldata secrets,
+    uint64 subscriptionId,
+    uint32 gasLimit) public {
+      bytes32 requestId = executeRequest(sourceCode, secrets, args, subscriptionId, gasLimit);
+      super._mint(_msgSender(), tokenAmount);
+      emit TransferredCoins(msg.sender, tokenAmount);
+    }
 
-  
   function updateOracleAddress(address oracle) public onlyOwner {
     setOracle(oracle);
   }
-  
-    function updateSourceCode(string memory _sourceCode) public onlyOwner{
-        sourceCode = _sourceCode;
-    }
+
+  function updateSourceCode(string memory _sourceCode) public onlyOwner {
+    sourceCode = _sourceCode;
+  }
 
   function addSimulatedRequestId(address oracleAddress, bytes32 requestId) public onlyOwner {
-      addExternalRequest(oracleAddress, requestId);
+    addExternalRequest(oracleAddress, requestId);
   }
-  
 }

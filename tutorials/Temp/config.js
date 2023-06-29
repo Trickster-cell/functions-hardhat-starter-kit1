@@ -36,9 +36,9 @@ const requestConfig = {
   // ETH wallet key used to sign secrets so they cannot be accessed by a 3rd party
   walletPrivateKey: process.env["PRIVATE_KEY"],
   // args can be accessed within the source code with `args[index]` (ie: args[0])
-  args: ["Patna"],
+  args: ["0abc4353-00ea-4b86-a0f5-4dcf1b37652d"],
   // expected type of the returned value
-  expectedReturnType: ReturnType.uint256,
+  expectedReturnType: ReturnType.string,
 }
 
 module.exports = requestConfig
