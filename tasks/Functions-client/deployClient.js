@@ -1,7 +1,7 @@
 const { types } = require("hardhat/config")
 const { networks } = require("../../networks")
 
-task("functions-deploy-client", "Deploys the FunctionsConsumer contract")
+task("functions-deploy-client", "Deploys the TestContract contract")
   .addOptionalParam("verify", "Set to true to verify client contract", false, types.boolean)
   .setAction(async (taskArgs) => {
     if (network.name === "hardhat") {
@@ -17,8 +17,8 @@ task("functions-deploy-client", "Deploys the FunctionsConsumer contract")
     console.log("\n__Compiling Contracts__")
     await run("compile")
 
-    const clientContractFactory = await ethers.getContractFactory("TempContract")
-    const clientContract = await clientContractFactory.deploy(oracleAddress,"")
+    const clientContractFactory = await ethers.getContractFactory("TestContract")
+    const clientContract = await clientContractFactory.deploy(oracleAddress,"","0x1eef8d02758815ffcaea9ffed2af36a8e8d4e2ed")
 
     console.log(
       `\nWaiting ${networks[network.name].confirmations} blocks for transaction ${
@@ -35,7 +35,7 @@ task("functions-deploy-client", "Deploys the FunctionsConsumer contract")
         await clientContract.deployTransaction.wait(Math.max(6 - networks[network.name].confirmations, 0))
         await run("verify:verify", {
           address: clientContract.address,
-          constructorArguments: [oracleAddress, ""],
+          constructorArguments: [oracleAddress, "", "0x1eef8d02758815ffcaea9ffed2af36a8e8d4e2ed"],
         })
         console.log("Contract verified")
       } catch (error) {

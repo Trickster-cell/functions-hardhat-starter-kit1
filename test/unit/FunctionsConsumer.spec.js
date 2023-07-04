@@ -1,26 +1,56 @@
 const { expect } = require("chai")
 const { ethers } = require("hardhat")
 const path = require("path")
-const fs = require("fs");
-
+// const { ethers } = require("ethers");
+const fs = require("fs")
+const { assert } = require("console")
+const contractAddress = "0x9E9FF3334f50Bf2d944eB764c7DB6eaE9Bc4911d"
+// const contract = new ethers.Contract(ADDRESS, ABI, signer);
 
 describe("Temp Contract", function () {
-  it("should call an API", async function () {
+  // it("should set the source code", async function () {
+  //   let contract = await ethers.getContractAt("TestContract", contractAddress)
+  //   const file = fs.readFileSync(path.resolve(`${__dirname}/../../tutorials/Temp`, "source.js")).toString()
+  //   const changeSource = await contract.updateSourceCode(file)
+  //   await changeSource.wait()
+  // })
+
+  // it("should map the session id with address", async function () {
+  //   let contract = await ethers.getContractAt("TestContract", contractAddress);
+
+  //   const [owner] = await ethers.getSigners();
+  //   const sessionId = "4c11c01a-19fd-47d1-b301-5a6782144d72";
+
+  //   const abc = await contract.mapSessionId(sessionId);
+  //   await abc.wait();
+  //   // await contract.getAddressFrmSessionId(sessionId);
+
+  //   const data2 = await contract.getAddressFrmSessionId(sessionId);
+  //   console.log(data2);
+  //   expect(data2).to.equal(owner.address);
+  // });
+
+  it("should call an contract function", async function () {
+    let contract = await ethers.getContractAt("TestContract", contractAddress)
+
     const [owner] = await ethers.getSigners()
 
-    const ERC20VerifierAddress = "0x4a54CC5f35A7b919eEa94419699EB8cB3C4aD6A7"
+    const sessionId = "4c11c01a-19fd-47d1-b301-5a6782144d72"
+    const args = [sessionId.toString()]
+    const secrets = []
+    const subId = 1864
+    const gasLimit = 300000
 
-    let erc20Verifier = await ethers.getContractAt("TempContract", ERC20VerifierAddress)
+    const transferTokenTx = await contract.transferToken(args, secrets, subId, gasLimit, { gasLimit: 1000000 })
 
-    const filePath = `${__dirname}/../../tutorials/Temp/source.js`
-    const fileContent = fs.readFileSync(filePath, "utf8");
-    // console.log(typeof(fileContent));
+    await transferTokenTx.wait()
+  })
 
-    // const val = await erc20Verifier.getVolumeData();
+  it("should check the relayer", async function () {
+    let contract = await ethers.getContractAt("TestContract", contractAddress)
+    const transferTokenTx = await contract.checkRelayer()
 
-    const val2 = await erc20Verifier.updateSourceCode(fileContent)
-    console.log(val2)
-    // expect(val2).to.equal(100);
-    // expect(val).to.equal(100);
+    // await transferTokenTx.wait()
+    console.log(transferTokenTx);
   })
 })
