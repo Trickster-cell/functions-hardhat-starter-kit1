@@ -24,12 +24,12 @@ contract TestContract is FunctionsClient, ERC20 {
   address private relayer;
   address private owner;
 
-  mapping(string=>address) private sessionId2address;
+  mapping(string => address) private sessionId2address;
 
   event OCRResponse(bytes32 indexed requestId, bytes result, bytes err);
   event TransferredCoins(address indexed recieverAddress, uint256 tokenAmount);
   uint256 public ans;
-  uint256 public tokenAmount = 5 * 10**uint256(decimals());
+  uint256 public tokenAmount = 5 * 10 ** uint256(decimals());
 
   constructor(
     address oracle,
@@ -41,6 +41,15 @@ contract TestContract is FunctionsClient, ERC20 {
     owner = msg.sender;
   }
 
+  function _checkRelayer() internal view {
+    require(relayer == msg.sender, "Caller is not the relayer");
+  }
+
+  modifier onlyRelayer() {
+    _checkRelayer();
+    _;
+  }
+
   function executeRequest(
     string memory source,
     bytes memory secrets,
@@ -48,8 +57,7 @@ contract TestContract is FunctionsClient, ERC20 {
     uint64 subscriptionId,
     uint32 gasLimit
   ) public returns (bytes32) {
-    require((msg.sender == relayer)||(msg.sender==owner), "Only the contract owner or relayer can call this function");
-    
+
     Functions.Request memory req;
     req.initializeRequest(Functions.Location.Inline, Functions.CodeLanguage.JavaScript, source);
     if (secrets.length > 0) {
@@ -81,41 +89,43 @@ contract TestContract is FunctionsClient, ERC20 {
     return sessionId2address[_sessionId];
   }
 
-  function transferToken(string[] calldata args,
+  function transferToken(
+    string[] calldata args,
     bytes calldata secrets,
     uint64 subscriptionId,
-    uint32 gasLimit) public {
-      bytes32 requestId = executeRequest(sourceCode, secrets, args, subscriptionId, gasLimit);
-      string memory sessionID = args[0];
-      address receiver = getAddressFrmSessionId(sessionID);
-      super._mint(receiver, tokenAmount);
-      emit TransferredCoins(receiver, tokenAmount);
-    }
+    uint32 gasLimit
+  ) public onlyRelayer {
+    bytes32 requestId = executeRequest(sourceCode, secrets, args, subscriptionId, gasLimit);
+    string memory sessionID = args[0];
+    address receiver = getAddressFrmSessionId(sessionID);
+    super._mint(receiver, tokenAmount);
+    emit TransferredCoins(receiver, tokenAmount);
+  }
 
   function updateOracleAddress(address oracle) public {
-    require((msg.sender==owner), "Only the contract owner can call this function");
+    require((msg.sender == owner), "Only the contract owner can call this function");
     setOracle(oracle);
   }
+
   // acbc
 
   function updateSourceCode(string memory _sourceCode) public {
-    require((msg.sender==owner), "Only the contract owner can call this function");
+    require((msg.sender == owner), "Only the contract owner can call this function");
     sourceCode = _sourceCode;
   }
 
   function addSimulatedRequestId(address oracleAddress, bytes32 requestId) public {
-    require((msg.sender==owner), "Only the contract owner can call this function");
+    require((msg.sender == owner), "Only the contract owner can call this function");
     addExternalRequest(oracleAddress, requestId);
   }
 
-  function checkRelayer() public view returns(address) {
-    require((msg.sender==owner), "Only the contract owner can call this function");
+  function checkRelayer() public view returns (address) {
+    require((msg.sender == owner), "Only the contract owner can call this function");
     return relayer;
   }
 
-  function changeRelayer(address _relayer) public{
-    require((msg.sender==owner), "Only the contract owner can call this function");
+  function changeRelayer(address _relayer) public {
+    require((msg.sender == owner), "Only the contract owner can call this function");
     relayer = _relayer;
   }
-  
 }
