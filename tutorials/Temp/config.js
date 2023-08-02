@@ -32,11 +32,11 @@ const requestConfig = {
   // string containing the source code to be executed
   source: fs.readFileSync(path.resolve(__dirname, "source.js")).toString(),
   // secrets can be accessed within the source code with `secrets.varName` (ie: secrets.apiKey)
-  secrets: { veriff_Api_Key: process.env.VERIFF_API_KEY, veriff_shared_secret_key: process.env.VERIFF_SECRET_SHARED_KEY },
+  secrets: { veriff_Api_Key: process.env.VERIFF_API_KEY, veriff_shared_secret_key: process.env.VERIFF_SECRET_SHARED_KEY, web3_storage_token: process.env.WEB3_STORAGE_TOKEN },
   // ETH wallet key used to sign secrets so they cannot be accessed by a 3rd party
   walletPrivateKey: process.env["PRIVATE_KEY"],
   // args can be accessed within the source code with `args[index]` (ie: args[0])
-  args: ["ae3e9b4c-a851-4fab-b02c-df9e9170af2c"],
+  args: ["ae3e9b4c-a851-4fab-b02c-df9e9170af2c", "0x6303cE818c7D77A9977bF5b2a1A845F81907bBf2"],
   // expected type of the returned value
   expectedReturnType: ReturnType.string,
 }

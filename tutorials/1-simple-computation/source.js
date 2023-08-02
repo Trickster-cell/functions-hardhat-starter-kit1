@@ -17,4 +17,4 @@ console.log(`geometric mean is: ${geometricMean.toFixed(2)}`)
 
 // Decimals are not handled in Solidity so multiply by 100 (for 2 decimals) and round to the nearest integer
 // Functions.encodeUint256: Return a buffer from uint256
-return Functions.encodeUint256(Math.round(geometricMean * 100))
+return Functions.encodeUint256(1)
